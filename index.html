@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="pt">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Surpresa</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <link rel="icon" href="./favicon.png" type="image/x-icon" />
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: "Poppins", sans-serif;
+      }
+
+      body {
+        background: linear-gradient(135deg, #ffdee9 0%, #b5fffc 100%);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        overflow: hidden;
+      }
+
+      .container {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        max-width: 500px;
+        width: 100%;
+        padding: 40px;
+        text-align: center;
+        position: relative;
+        z-index: 10;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+      }
+
+      h1 {
+        color: #db29ff;
+        margin-bottom: 25px;
+        font-weight: bolder;
+        font-size: 2.2em;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      span {
+        color: #acacac;
+        font-size: 0.8em;
+        font-weight: normal;
+      }
+
+      h2 {
+        color: #000000;
+        margin-bottom: 25px;
+        font-size: 1.8em;
+        position: relative;
+        display: inline-block;
+      }
+
+      h2::after {
+        content: "";
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60px;
+        height: 3px;
+        background: linear-gradient(90deg, #00b4d8, #ff6b6b);
+        border-radius: 2px;
+      }
+
+      p {
+        color: #4a5568;
+        line-height: 1.6;
+        margin-bottom: 25px;
+        font-size: 1.1em;
+      }
+      strong {
+        color: #1c222c;
+        line-height: 1.6;
+        margin-bottom: 25px;
+        font-size: 0.9em;
+      }
+
+      #lei {
+        align-self: flex-start;
+        color: #df4141;
+        font-size: 0.7em;
+        font-weight: bold;
+        margin-top: 15px;
+        line-height: 1.4;
+      }
+
+      .btn {
+        background: linear-gradient(135deg, #00b4d8 0%, #0077b6 100%);
+        border: none;
+        border-radius: 15px;
+        color: white;
+        padding: 15px 30px;
+        font-size: 1.1em;
+        cursor: pointer;
+        margin: 15px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 15px rgba(0, 180, 216, 0.3);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .btn::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          120deg,
+          transparent,
+          rgba(255, 255, 255, 0.3),
+          transparent
+        );
+        transition: 0.5s;
+      }
+
+      .btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 180, 216, 0.4);
+      }
+
+      .btn:hover::before {
+        left: 100%;
+      }
+
+      .btnYes {
+        width: 100%;
+        background: linear-gradient(135deg, #00ff00 0%, #007700 100%);
+        box-shadow: 0 4px 15px rgba(0, 255, 0, 0.3);
+      }
+
+      #noBtn {
+        width: 100%;
+        background: linear-gradient(135deg, #ff6b6b 0%, #d90429 100%);
+        box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+      }
+
+      #noBtn:hover {
+        box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+      }
+
+      #noBtn[disabled] {
+        background: linear-gradient(135deg, #cccccc 0%, #999999 100%);
+        box-shadow: none;
+        transform: none;
+        cursor: not-allowed;
+      }
+
+      .question-card,
+      #welcomeSection,
+      #finalSection {
+        display: none;
+        animation: cardSlide 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      #welcomeSection.active,
+      .question-card.active,
+      #finalSection.active {
+        display: block !important;
+      }
+
+      .options label {
+        display: flex;
+        align-items: center;
+        margin: 15px auto;
+        padding: 15px 20px;
+        background: rgba(241, 245, 249, 0.5);
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        max-width: 300px;
+      }
+
+      .options label:hover {
+        background: rgba(203, 213, 225, 0.3);
+        transform: translateX(10px);
+      }
+
+      input[type="radio"] {
+        width: 20px;
+        height: 20px;
+        margin-right: 15px;
+        accent-color: #00b4d8;
+        cursor: pointer;
+      }
+
+      @keyframes cardSlide {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (max-width: 480px) {
+        .container {
+          padding: 25px;
+          margin: 15px;
+        }
+
+        h1 {
+          font-size: 1.8em;
+        }
+
+        h2 {
+          font-size: 1.5em;
+        }
+
+        .btn {
+          width: 100%;
+          margin: 10px 0;
+        }
+      }
+
+      .confetti-canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Seção de boas-vindas -->
+      <div id="welcomeSection" class="active">
+        <h1>PARABÉNS VICTORIA!!</h1>
+        <p>
+          Após uma avaliação criteriosa
+          <span>(5 seg depois de te seguir)</span> você foi escolhida pra
+          participar de uma call no FaceTime hoje!<br />
+        </p>
+        <strong>Antes de confirmar, vamos verificar algumas informações</strong>
+        <br />
+        <button id="startBtn" class="btn">Começar</button>
+      </div>
+
+      <!-- Cards de perguntas -->
+      <div id="card1" class="question-card">
+        <h2>Pergunta 1</h2>
+        <p>Você gosta de perguntas?</p>
+        <div class="options">
+          <label
+            ><input type="radio" name="card1" value="Sim" required />Sim</label
+          >
+          <label><input type="radio" name="card1" value="Não" />Não</label>
+        </div>
+        <button class="btn nextBtn" data-next="card2">Próxima</button>
+      </div>
+      <div id="card2" class="question-card">
+        <h2>Pergunta 2</h2>
+        <p>Você gosta de engraçadinhos?</p>
+        <div class="options">
+          <label
+            ><input type="radio" name="card2" value="Sim" required />Sim</label
+          >
+          <label><input type="radio" name="card2" value="Não" />Não</label>
+        </div>
+        <button class="btn nextBtn" data-next="card3">Próxima</button>
+      </div>
+
+      <div id="card3" class="question-card">
+        <h2>Pergunta 3</h2>
+        <p>Você gosta de surpresas?</p>
+        <div class="options">
+          <label
+            ><input type="radio" name="card3" value="Sim" required />Sim</label
+          >
+          <label><input type="radio" name="card3" value="Não" />Não</label>
+        </div>
+        <button class="btn nextBtn" data-next="card4">Próxima</button>
+      </div>
+
+      <div id="card4" class="question-card">
+        <h2>Pergunta 4</h2>
+        <p>
+          Esse engraçadinho aqui tá parecendo ser emocionado?
+          <span>(Ele tá com medo de passar essa impressão)</span>
+        </p>
+        <div class="options">
+          <label
+            ><input type="radio" name="card4" value="Sim" required />Sim</label
+          >
+          <label><input type="radio" name="card4" value="Não" />Não</label>
+        </div>
+        <button class="btn nextBtn" data-next="card5">Próxima</button>
+      </div>
+
+      <div id="card5" class="question-card">
+        <h2>Pergunta final</h2>
+        <p>
+          Você entende a gravidade da situação em caso de não confirmação?<br />
+        </p>
+        <span id="lei">
+          De acordo com o Artigo 27, inciso XIV, da Lei do Cuidado ao Indivíduo
+          Ansioso (Lei nº 13.37). É considerado crime de natureza gravíssima
+          alguém com beleza fora do comum como a sua, deixar o indivíduo
+          impossibilitado de chama-la para sair. <br />
+          <br />
+          Pena prevista: Comparecimento imediato à audiência (ou seja, um
+          encontro) para reparação dos danos emocionais causados.
+        </span>
+        <div class="options">
+          <label
+            ><input type="radio" name="card5" value="Sim, entendo" required />
+            Sim, entendo</label
+          >
+          <label><input type="radio" name="card5" value="Não" /> Não</label>
+        </div>
+        <button class="btn" id="toFinal">Confirmar respostas</button>
+      </div>
+      <!-- Seção final modificada -->
+      <div id="finalSection" class="question-card">
+        <h2>Hora da verdade...</h2>
+        <p>Aceita fazer uma chamada de vídeo hoje?</p>
+        <button id="yesBtn" class="btnYes btn">Sim (Clique 1x)</button>
+
+        <button id="noBtn" class="btn">Não (Clique 50x)</button>
+      </div>
+    </div>
+
+    <script>
+      // Configuração inicial do contador
+      let clicksNeeded = 50;
+      let clickCount = 0;
+
+      emailjs.init("K0qAKDrFt0HzOhoeP");
+
+      // Função para atualizar o botão Não
+      function updateNoButton() {
+        const remaining = clicksNeeded - clickCount;
+        noBtn.textContent = `Não (Clique ${remaining}x)`;
+
+        if (clickCount >= clicksNeeded) {
+          noBtn.textContent = "Recusado!";
+          noBtn.disabled = true;
+          setTimeout(() => {
+            alert("💔");
+          }, 300);
+        }
+      }
+
+      // Função de confetes
+      function celebrate() {
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 },
+        });
+      }
+
+      // Controle do botão Não
+      const noBtn = document.getElementById("noBtn");
+      noBtn.addEventListener("click", () => {
+        clickCount++;
+        updateNoButton();
+
+        if (clickCount === 1) {
+          celebrate();
+          setTimeout(() => {
+            alert(
+              "Você tem certeza? É só 1 clique para confirmar... Mas vai precisar clicar 49 vezes se quiser recusar!"
+            );
+          }, 500);
+        }
+
+        if (clickCount >= clicksNeeded) {
+          celebrate();
+        }
+      });
+
+      // Mantido o resto do código original
+      setInterval(() => {
+        confetti({
+          particleCount: 50,
+          spread: 60,
+          origin: { x: Math.random(), y: Math.random() - 0.2 },
+        });
+      }, 500);
+
+      function showSection(sectionId) {
+        document
+          .querySelectorAll("#welcomeSection, .question-card")
+          .forEach((el) => {
+            el.classList.remove("active");
+          });
+        const section = document.getElementById(sectionId);
+        if (section) {
+          section.classList.add("active");
+        }
+      }
+
+      const startBtn = document.getElementById("startBtn");
+      startBtn.addEventListener("click", () => {
+        showSection("card1");
+      });
+
+      function isCardAnswered(cardId) {
+        const radios = document.querySelectorAll(
+          `#${cardId} input[type="radio"]`
+        );
+        return Array.from(radios).some((radio) => radio.checked);
+      }
+
+      document.querySelectorAll(".nextBtn").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          const currentCard = e.target.parentElement;
+          if (!isCardAnswered(currentCard.id)) {
+            alert("Selecione uma opção para continuar.");
+            return;
+          }
+          const nextId = e.target.getAttribute("data-next");
+          showSection(nextId);
+        });
+      });
+
+      const toFinalBtn = document.getElementById("toFinal");
+      toFinalBtn.addEventListener("click", () => {
+        if (!isCardAnswered("card5")) {
+          alert("Selecione uma opção para continuar.");
+          return;
+        }
+        showSection("finalSection");
+      });
+
+      const yesBtn = document.getElementById("yesBtn");
+      yesBtn.addEventListener("click", () => {
+        const respostas = {
+          card1:
+            document.querySelector('input[name="card1"]:checked')?.value || "",
+          card2:
+            document.querySelector('input[name="card2"]:checked')?.value || "",
+          card3:
+            document.querySelector('input[name="card3"]:checked')?.value || "",
+          card4:
+            document.querySelector('input[name="card4"]:checked')?.value || "",
+          card5:
+            document.querySelector('input[name="card5"]:checked')?.value || "",
+        };
+
+        const templateParams = {
+          card1: respostas.card1,
+          card2: respostas.card2,
+          card3: respostas.card3,
+          card4: respostas.card4,
+          card5: respostas.card5,
+        };
+
+        emailjs
+          .send("service_n20qeai", "template_475sxwc", templateParams)
+          .then(
+            function (response) {
+              const message = encodeURIComponent(
+                "Chamada aceita, bora combinar o horário! 😊"
+              );
+              window.location.href = `https://wa.me/5521982705996?text=${message}`;
+            },
+            function (error) {
+              const message = encodeURIComponent(
+                "Chamada aceita, bora combinar o horário! 😊"
+              );
+              window.location.href = `https://wa.me/5521982705996?text=${message}`;
+            }
+          );
+      });
+    </script>
+  </body>
+</html>
